@@ -35,7 +35,8 @@ const APP = {
             state.user = user;
             cookie.set('name', user.phone);
             cookie.set('pwd', user.pwd);
-            this.$router.push('/home');
+            console.log(router)
+            router.push('/home');
         },
         layout(state) {
             console.log('登出');

@@ -12,6 +12,7 @@
     "bootstrap": "^4.3.1",
     "bootstrap-vue": "^2.0.0-rc.18",
     "core-js": "^2.6.5",
+    "element-ui": "^2.8.2",
     "es6-promise": "^4.2.6",
     "lodash": "^4.17.11",
     "logger": "0.0.1",
