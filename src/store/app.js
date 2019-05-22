@@ -22,43 +22,54 @@ const APP = {
                 .login(state, payload)
                 .then((user) => {
                     commit('login_success', user);
+                    commit('set_user', user);
                     commit('hide_loading');
                 })
                 .catch((error) => {
-                    commit('hide_loading');
-                    commit('show_toast');
+                    commit('hide_loading', error);
+                    commit('login_error', error);
                 });
         }
     },
     mutations: {
-        login_success(state, user) {
+        set_user(state, user) {
+            console.log('set_user', state, user);
             state.user = user;
             cookie.set('name', user.phone);
             cookie.set('pwd', user.pwd);
-            console.log(router)
+            localStorage.setItem('user', JSON.stringify(user));
+        },
+        login_success() {
             router.push('/home');
+        },
+        login_error() {
+            store.commit('show_toast', '请重新登录');
+            router.push('/login');
         },
         layout(state) {
             console.log('登出');
+            localStorage.clear();
+            router.push('/login');
+            state.user = {};
         },
         login(state) {
             console.log('登陆');
         },
         show_loading(state) {
             state.loading = true;
-            console.log('show');
+            console.log('show_loading');
         },
-        hide_loading(state) {
+        hide_loading(state, error) {
             state.loading = false;
-            console.log('hide');
+            console.log('hide_loading', error);
         },
         show_toast(state) {
             state.toast = true;
-            console.log('show');
+            console.log('show_toast');
         },
         hide_toast(state) {
             state.toast = false;
-            console.log('hide');
+            console.log('hide_toast');
         }
     }
 };

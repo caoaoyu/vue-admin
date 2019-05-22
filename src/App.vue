@@ -1,26 +1,31 @@
 <template>
-	<el-container id="app">
-		<el-aside>
-			<Menu v-if="show"></Menu>
-		</el-aside>
-		<el-container>
-			<el-main>
-				<router-view></router-view>
-			</el-main>
-			<el-footer>
-				<Footer v-if="show"></Footer>
-			</el-footer>
+	<div id="app">
+		<el-container v-if="show">
+			<el-aside>
+				<Menu v-if="show"></Menu>
+			</el-aside>
+			<el-container>
+				<UserHead v-if="show"></UserHead>
+				<el-main>
+					<router-view></router-view>
+				</el-main>
+				<el-footer>
+					<Footer v-if="show"></Footer>
+				</el-footer>
+			</el-container>
 		</el-container>
-	</el-container>
+		<router-view v-if="!show"></router-view>
+	</div>
 </template>
 
 <script>
 import Menu from "@/components/menu.vue";
 import Footer from "@/components/footer.vue";
+import UserHead from "@/components/UserHead.vue";
 
 export default {
 	name: "app",
-	data() {
+	data: function() {
 		return {
 			show: false
 		};
@@ -30,11 +35,12 @@ export default {
 			this.show = this.$route.name != "login";
 		}
 	},
-	created() {
+	created: function() {
 		this.show = this.$route.name != "login";
 	},
 	components: {
 		Menu,
+		UserHead,
 		Footer
 	}
 };
@@ -42,11 +48,20 @@ export default {
 
 <style lang="scss">
 html,
-body {
+body,
+.el-container {
 	width: 100%;
 	height: 100%;
 	margin: 0;
 	padding: 0;
+}
+
+.el-aside {
+	border-right: solid 1px #e6e6e6;
+}
+
+.el-menu {
+	border: none !important;
 }
 #app {
 	font-family: "Avenir", Helvetica, Arial, sans-serif;
