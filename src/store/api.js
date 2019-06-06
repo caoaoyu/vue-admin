@@ -15,6 +15,21 @@ const api = {
                 .catch(reject);
             return {};
         });
+    },
+    get_member: (state, payload) => {
+        return new Promise((resolve, reject) => {
+            axios
+                .post(`${config.api_path}/getMember`, payload)
+                .then((res) => {
+                    if (res.data.error) {
+                        reject(res.data.error);
+                    } else {
+                        resolve(res.data.data);
+                    }
+                })
+                .catch(reject);
+            return {};
+        });
     }
 };
 export default api;

@@ -59,7 +59,7 @@ router.beforeEach(function(to, from, next) {
     }
 
     next();
-    console.log(store, user);
+    // console.log(store, user);
     // if (!store.state.user.pwd) {
     //     store.dispatch('login', { name, pwd });
     // } else {

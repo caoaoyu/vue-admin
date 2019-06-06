@@ -23,16 +23,92 @@ router.get('/index', (req, res) => {
 // 用户登陆
 router.post('/login', (req, res) => {
     const { name, pwd } = req.body;
-    // SELECT * FROM `user` WHERE `phone`='18511620415' AND `pwd`='3449c9e5e332f1dbb81505cd739fbf3f'
-    const statement = `SELECT * FROM user WHERE phone='${name}' AND pwd='${pwd}'`;
-    console.log(statement);
+    const statement = `SELECT * FROM user WHERE phone='${name}' AND pwd='${pwd}' AND state = 1`;
+
     connection.query(statement, (err, result) => {
-        console.log(err);
-        if (err || result.length < 1) return res.json({ error: true, msg: '账户或者密码错误' });
-        res.json({
-            success: true,
-            user: result[0]
+        if (err || result.length < 1) {
+            res.json({ error: true, msg: '账户或者密码错误' });
+        } else {
+            res.json({
+                success: true,
+                user: result[0]
+            });
+        }
+    });
+});
+
+// 获取用户
+router.post('/getMember', (req, res) => {
+    const { phone } = req.body;
+
+    if (!phone) {
+        res.json({ error: true, msg: '缺少传递值' });
+        return;
+    }
+
+    const statement = `SELECT * FROM user WHERE phone != ${phone}`;
+
+    connection.query(statement, (err, result) => {
+        if (err) {
+            console.log('[ADD MEMBER] - ', err.message);
+            res.json({ error: true, msg: '服务器错误' });
+        } else {
+            res.json({ success: true, data: result });
+        }
+    });
+});
+// 添加用户
+router.post('/addMember', (req, res) => {
+    const { name, sex, phone, pwd } = req.body;
+
+    if (!name || !phone || !pwd) {
+        res.json({ error: true, msg: '缺少传递值' });
+        return;
+    }
+
+    const statement = `INSERT INTO user(name,phone,pwd, sex, create_time) VALUES(${name}, '${phone}', ${pwd}, ${sex} '${create_time}')`;
+
+    connection.query(statement, (err) => {
+        if (err) {
+            console.log('[ADD MEMBER] - ', err.message);
+            res.json({ error: true, msg: '服务器错误' });
+        } else {
+            res.json({ success: true });
+        }
+    });
+
+    const statement_1 = `INSERT INFO operation_logs(content) VALUES (${phone} 添加了 ${phone})`;
+
+    connection.query(statement_1, (err) => {
+        err && console.log('INSERT LOGS - ', err.message);
+    });
+});
+
+// 删除用户
+router.post('/removeMember', (req, res) => {
+    const { uid, phone } = req.body;
+    if (!uid) {
+        return res.json({
+            error: true,
+            msg: { uid: '缺少传递值' }
         });
+    }
+
+    const statement = `UPDATE user SET state = 2 WHERE id = ${uid}`;
+
+    connection.query(statement, (err) => {
+        if (err) {
+            console.log('REMOVE MEMBER - ', err.message);
+            res.json({ error: true, msg: '服务器错误' });
+        } else {
+            res.json({ success: true });
+        }
+    });
+
+    const statement_1 = `INSERT INFO operation_logs(content) VALUES (${phone} 删除了 ${phone})`;
+
+    connection.query(statement_1, (err) => {
+        err && console.log('INSERT LOGS - ', err.message);
     });
 });
 

@@ -81,4 +81,32 @@ body,
 		}
 	}
 }
+
+.space-mr20 {
+	margin-right: 20px;
+}
+.space-mt20 {
+	margin-top: 20px;
+}
+.space-mb20 {
+	margin-bottom: 20px;
+}
+
+.space-ml20 {
+	margin-left: 20px;
+}
+
+.space-pr20 {
+	padding: 20px;
+}
+.space-pt20 {
+	padding-top: 20px;
+}
+.space-pb20 {
+	padding-bottop: 20px;
+}
+
+.space-pl20 {
+	padding-left: 20px;
+}
 </style>
