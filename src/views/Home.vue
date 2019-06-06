@@ -53,7 +53,6 @@ export default {
 	},
 	computed: {
 		members() {
-			console.log(this.$store.state.member.data);
 			this.data.list = this.$store.state.member.data || [];
 		}
 	},
@@ -75,7 +74,10 @@ export default {
 		},
 		// 新增用户
 		add_member() {
-			console.log("add_member");
+			this.$router.push("/registration");
+			// this.$store.dispatch("add_member", {
+			// 	phone: this.$store.state.app.user.phone,
+			// })
 		}
 	}
 };

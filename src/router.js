@@ -3,6 +3,7 @@ import Router from 'vue-router';
 import Login from './views/Login.vue';
 import Home from './views/Home.vue';
 import Logs from './views/Logs.vue';
+import Registration from './views/Registration';
 import Pages from './views/Pages.vue';
 import store from './store/index';
 
@@ -29,6 +30,11 @@ const router = new Router({
             path: '/pages',
             name: 'pages',
             component: Pages
+        },
+        {
+            path: '/registration',
+            name: 'registration',
+            component: Registration
         }
         // {
         //     path: '/about',
