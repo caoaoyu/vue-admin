@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const mysql = require('mysql');
+const async = require('async');
 const connection = mysql.createConnection({
     host: 'localhost',
     user: 'user',
@@ -59,29 +60,47 @@ router.post('/getMember', (req, res) => {
 });
 // 添加用户
 router.post('/addMember', (req, res) => {
-    const { name, sex, phone, pwd } = req.body;
+    const { name, sex, phone, pwd, create_time } = req.body;
 
     if (!name || !phone || !pwd) {
         res.json({ error: true, msg: '缺少传递值' });
         return;
     }
+    const statement = `SELECT * FROM user WHERE phone = ${phone}`;
+    const statement_1 = `INSERT IGNORE INTO user(name,phone,pwd, sex, create_time) VALUES('${name}', '${phone}', '${pwd}', '${sex}', '${create_time}')`;
+    const statement_2 = `INSERT INTO operation_logs(content, create_time) VALUES ('${phone} 添加了 ${phone}', '${create_time}')`;
 
-    const statement = `INSERT INTO user(name,phone,pwd, sex, create_time) VALUES(${name}, '${phone}', ${pwd}, ${sex} '${create_time}')`;
-
-    connection.query(statement, (err) => {
-        if (err) {
-            console.log('[ADD MEMBER] - ', err.message);
-            res.json({ error: true, msg: '服务器错误' });
-        } else {
-            res.json({ success: true });
+    async.waterfall(
+        [
+            (next) => {
+                connection.query(statement, (err, data) => {
+                    console.log(data);
+                    next(err, data);
+                });
+            },
+            (dataA, next) => {
+                var user = JSON.parse(JSON.stringify(dataA))[0] || {};
+                if (dataA.length > 0 && Object.keys(user).length > 0) {
+                    console.log('dataA------', dataA);
+                    next('账户已经存在');
+                    return;
+                }
+                connection.query(statement_1, next);
+            },
+            (dataA, dataB, next) => {
+                console.log('dataB', dataB);
+                connection.query(statement_2, next);
+            }
+        ],
+        function(err, result) {
+            if (err) {
+                console.log('[ADD MEMBER] - ', err);
+                res.json({ error: true, msg: err });
+            } else {
+                res.json({ success: true });
+            }
         }
-    });
-
-    const statement_1 = `INSERT INFO operation_logs(content) VALUES (${phone} 添加了 ${phone})`;
-
-    connection.query(statement_1, (err) => {
-        err && console.log('INSERT LOGS - ', err.message);
-    });
+    );
 });
 
 // 删除用户

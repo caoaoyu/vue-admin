@@ -1,8 +1,8 @@
 import api from '../api';
-
+import router from '../../router';
 const APP = {
     state: {
-        data: {}
+        data: []
     },
     actions: {
         get_member({ commit, state }, payload) {
@@ -16,11 +16,26 @@ const APP = {
                 .catch((error) => {
                     commit('hide_loading', error);
                 });
+        },
+        add_member({ commit, state }, payload) {
+            commit('show_loading', null, { root: true });
+            api
+                .AddMember(state, payload)
+                .then((data) => {
+                    commit('add_member_success', data);
+                    commit('hide_loading', null, { root: true });
+                })
+                .catch((error) => {
+                    commit('hide_loading', error);
+                });
         }
     },
     mutations: {
         set_member(state, data) {
             state.data = data;
+        },
+        add_member_success(state, data) {
+            router.push('/home');
         }
     }
 };

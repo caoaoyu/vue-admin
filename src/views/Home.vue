@@ -10,7 +10,7 @@
 				<el-button type="primary" @click="add_member">新增用户</el-button>
 			</el-col>
 		</el-row>
-		<el-table :data="list" style="width: 100%" height="450" border center>
+		<el-table :data="members" style="width: 100%" height="450" border center>
 			<el-table-column label="ID">
 				<template slot-scope="scope">{{ scope.row.id }}</template>
 			</el-table-column>
@@ -26,10 +26,10 @@
 		</el-table>
 		<el-pagination
 			class="space-mt20"
-			v-if="list.length > 0"
+			v-if="members.length > 0"
 			background
 			layout="prev, pager, next, jumper"
-			:total="list.length"
+			:total="members.length"
 			@current-change="handle_current_change"
 		></el-pagination>
 	</div>
@@ -40,8 +40,7 @@ export default {
 	name: "home",
 	data() {
 		return {
-			name: "",
-			list: []
+			name: ""
 		};
 	},
 	created() {
@@ -53,7 +52,7 @@ export default {
 	},
 	computed: {
 		members() {
-			this.data.list = this.$store.state.member.data || [];
+			return this.$store.state.member.data;
 		}
 	},
 	methods: {
@@ -63,7 +62,7 @@ export default {
 		handle_edit(i, parm) {
 			console.log(i, parm.id);
 		},
-		handle_delete() {
+		handle_delete(i, parm) {
 			console.log(i, parm);
 		},
 		// 根据姓名筛选

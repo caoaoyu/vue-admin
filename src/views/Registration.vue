@@ -1,6 +1,6 @@
 <template>
 	<el-row class="search_box space-mb20" :gutter="20">
-		<el-col :span="12" offset="6">
+		<el-col :span="12" :offset="6">
 			<el-form
 				class="rehistration-box"
 				status-icon
@@ -19,8 +19,8 @@
 					<el-input type="password" v-model="form.pwd" autocomplete="off"></el-input>
 				</el-form-item>
 				<el-form-item label="性别：">
-					<el-radio v-model="form.radio" label="1">男</el-radio>
-					<el-radio v-model="form.radio" label="2">女</el-radio>
+					<el-radio v-model="form.sex" label="1">男</el-radio>
+					<el-radio v-model="form.sex" label="2">女</el-radio>
 				</el-form-item>
 				<el-form-item class="space-mt20">
 					<el-button type="primary" @click="onSubmit">立即创建</el-button>
@@ -33,15 +33,16 @@
 
 
 <script>
+import { truncate } from "fs";
 export default {
 	name: "registration",
 	data() {
 		return {
 			form: {
-				name: "",
-				radio: "1",
-				phone: "",
-				pwd: ""
+				name: "test-1",
+				sex: "1",
+				phone: "18511620416",
+				pwd: "123456"
 			},
 			rules: {
 				name: [
@@ -52,13 +53,14 @@ export default {
 					},
 					{
 						min: 3,
-						max: 5,
+						max: 6,
 						message: "长度在 3 到 5 个字符",
 						trigger: "blur"
 					}
 				],
 				phone: [
 					{
+						required: true,
 						pattern: /^1(3|4|5|7|8)\d{9}$/,
 						message: "请输入正确的手机号",
 						trigger: "blur"
@@ -68,6 +70,7 @@ export default {
 					{
 						min: 6,
 						max: 6,
+						required: true,
 						message: "请输入六位数密码",
 						trigger: "blur"
 					}
@@ -81,7 +84,13 @@ export default {
 			this.$router.back();
 		},
 		onSubmit() {
-			this.$data;
+			this.$refs["form"].validate(valid => {
+				if (!valid) return false;
+				this.$store.dispatch("add_member", {
+					...this.$data.form,
+					create_time: Math.round(new Date().getTime() / 1000)
+				});
+			});
 		}
 	}
 };
