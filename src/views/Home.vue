@@ -32,15 +32,28 @@
 			:total="members.length"
 			@current-change="handle_current_change"
 		></el-pagination>
+		<EditMember
+			v-bind:id="id"
+			v-bind:show="show"
+			v-bind:name="name"
+			v-bind:sex="sex"
+			v-bind:uid="uid"
+			@handle_hide="handle_hide"
+		></EditMember>
 	</div>
 </template>
 
 <script>
+import EditMember from "../components/EditMember";
 export default {
 	name: "home",
 	data() {
 		return {
-			name: ""
+			name: "",
+			id: 1,
+			show: false,
+			sex: 1,
+			uid: false
 		};
 	},
 	created() {
@@ -49,6 +62,7 @@ export default {
 			name,
 			page_size: 0
 		});
+		this.$set(this.$data, "uid", this.$store.state.app.user.id);
 	},
 	computed: {
 		members() {
@@ -56,14 +70,21 @@ export default {
 		}
 	},
 	methods: {
+		handle_hide() {
+			this.$set(this.$data, "show", false);
+		},
 		handle_current_change(val) {
 			console.log(val);
 		},
 		handle_edit(i, parm) {
-			console.log(i, parm.id);
+			this.$set(this.$data, "show", true);
+			this.$set(this.$data, "name", parm.name);
+			this.$set(this.$data, "id", parm.id);
+			this.$set(this.$data, "sex", parm.sex);
 		},
 		handle_delete(i, parm) {
-			console.log(i, parm);
+			console.log(i, parm.id, this.$data);
+			// this.$store.dispatch("remove_member", parm.id);
 		},
 		// 根据姓名筛选
 		search_name() {
@@ -74,10 +95,10 @@ export default {
 		// 新增用户
 		add_member() {
 			this.$router.push("/registration");
-			// this.$store.dispatch("add_member", {
-			// 	phone: this.$store.state.app.user.phone,
-			// })
 		}
+	},
+	components: {
+		EditMember
 	}
 };
 </script>

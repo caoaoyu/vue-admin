@@ -47,7 +47,7 @@ router.post('/getMember', (req, res) => {
         return;
     }
 
-    const statement = `SELECT * FROM user WHERE phone != ${phone}`;
+    const statement = `SELECT id,name,phone,sex FROM user WHERE phone != ${phone}`;
 
     connection.query(statement, (err, result) => {
         if (err) {
@@ -73,22 +73,17 @@ router.post('/addMember', (req, res) => {
     async.waterfall(
         [
             (next) => {
-                connection.query(statement, (err, data) => {
-                    console.log(data);
-                    next(err, data);
-                });
+                connection.query(statement, next);
             },
             (dataA, next) => {
                 var user = JSON.parse(JSON.stringify(dataA))[0] || {};
                 if (dataA.length > 0 && Object.keys(user).length > 0) {
-                    console.log('dataA------', dataA);
                     next('账户已经存在');
                     return;
                 }
                 connection.query(statement_1, next);
             },
             (dataA, dataB, next) => {
-                console.log('dataB', dataB);
                 connection.query(statement_2, next);
             }
         ],
@@ -125,6 +120,33 @@ router.post('/removeMember', (req, res) => {
     });
 
     const statement_1 = `INSERT INFO operation_logs(content) VALUES (${phone} 删除了 ${phone})`;
+
+    connection.query(statement_1, (err) => {
+        err && console.log('INSERT LOGS - ', err.message);
+    });
+});
+// 编辑用户
+router.post('/editMember', (req, res) => {
+    const { id, name, sex } = req.body;
+    if (!id) {
+        return res.json({
+            error: true,
+            msg: { id: '缺少传递值' }
+        });
+    }
+
+    const statement = `UPDATE user SET name = ${name}, sex = ${sex} WHERE id = ${id}`;
+    const statement_1 = `INSERT INFO operation_logs(content) VALUES (${phone} 删除了 ${phone})`;
+
+    connection.query(statement, (err) => {
+        if (err) {
+            console.log('REMOVE MEMBER - ', err.message);
+            res.json({ error: true, msg: '服务器错误' });
+        } else {
+            res.json({ success: true });
+        }
+    });
+
 
     connection.query(statement_1, (err) => {
         err && console.log('INSERT LOGS - ', err.message);

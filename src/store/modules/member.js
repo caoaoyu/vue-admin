@@ -1,5 +1,6 @@
 import api from '../api';
 import router from '../../router';
+
 const APP = {
     state: {
         data: []
@@ -23,6 +24,18 @@ const APP = {
                 .AddMember(state, payload)
                 .then((data) => {
                     commit('add_member_success', data);
+                    commit('hide_loading', null, { root: true });
+                })
+                .catch((error) => {
+                    commit('hide_loading', error);
+                });
+        },
+        edit_member({ commit, state }, payload) {
+            commit('show_loading', null, { root: true });
+            api
+                .EditMember(state, payload)
+                .then((data) => {
+                    dispatch('get_member');
                     commit('hide_loading', null, { root: true });
                 })
                 .catch((error) => {

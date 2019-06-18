@@ -50,6 +50,29 @@ const api = {
                 .catch(reject);
             return {};
         });
+    },
+    //添加用户
+    EditMember: (state, payload) => {
+        const cond = {
+            sex: payload.sex,
+            name: payload.name,
+            id: payload.id
+        };
+
+        console.log(state);
+        // return new Promise((resolve, reject) => {
+        //     axios
+        //         .post(`${config.api_path}/editMember`, cond)
+        //         .then((res) => {
+        //             if (res.data.error) {
+        //                 reject(res.data.error);
+        //             } else {
+        //                 resolve(res.data.data);
+        //             }
+        //         })
+        //         .catch(reject);
+        //     return {};
+        // });
     }
 };
 export default api;
