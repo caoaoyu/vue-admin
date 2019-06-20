@@ -8,6 +8,7 @@ const connection = mysql.createConnection({
     database: 'admin',
     port: 3308
 });
+const create_time = Math.round(new Date().getTime() / 1000);
 
 router.all('*', (req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
@@ -18,7 +19,6 @@ router.all('*', (req, res, next) => {
 });
 
 router.get('/index', (req, res) => {
-    console.log('--------------');
     return res.json({ name: 1 });
 });
 // 用户登陆
@@ -39,15 +39,15 @@ router.post('/login', (req, res) => {
 });
 
 // 获取用户
-router.post('/getMember', (req, res) => {
-    const { phone } = req.body;
+router.post('/fetchMember', (req, res) => {
+    const { id } = req.body;
 
-    if (!phone) {
+    if (!id) {
         res.json({ error: true, msg: '缺少传递值' });
         return;
     }
 
-    const statement = `SELECT id,name,phone,sex FROM user WHERE phone != ${phone}`;
+    const statement = `SELECT id,name,phone,sex FROM user WHERE id != ${id} AND status = 1`;
 
     connection.query(statement, (err, result) => {
         if (err) {
@@ -60,31 +60,26 @@ router.post('/getMember', (req, res) => {
 });
 // 添加用户
 router.post('/addMember', (req, res) => {
-    const { name, sex, phone, pwd, create_time } = req.body;
+    const { name, sex, id, pwd, phone, uid } = req.body;
 
-    if (!name || !phone || !pwd) {
+    if (!name || !id || !pwd || !phone) {
         res.json({ error: true, msg: '缺少传递值' });
         return;
     }
     const statement = `SELECT * FROM user WHERE phone = ${phone}`;
-    const statement_1 = `INSERT IGNORE INTO user(name,phone,pwd, sex, create_time) VALUES('${name}', '${phone}', '${pwd}', '${sex}', '${create_time}')`;
-    const statement_2 = `INSERT INTO operation_logs(content, create_time) VALUES ('${phone} 添加了 ${phone}', '${create_time}')`;
+    const statement_1 = `INSERT IGNORE INTO user(name, phone, pwd, sex, create_time) VALUES('${name}', '${phone}', '${pwd}', '${sex}', '${create_time}')`;
 
     async.waterfall(
         [
-            (next) => {
-                connection.query(statement, next);
-            },
+            (next) => connection.query(statement, (err, result) => next(err, result)),
             (dataA, next) => {
-                var user = JSON.parse(JSON.stringify(dataA))[0] || {};
+                const user = JSON.parse(JSON.stringify(dataA))[0] || {};
                 if (dataA.length > 0 && Object.keys(user).length > 0) {
                     next('账户已经存在');
                     return;
                 }
-                connection.query(statement_1, next);
-            },
-            (dataA, dataB, next) => {
-                connection.query(statement_2, next);
+                connection.query(statement_1, (err, result) => next(err, result));
+                addLogsWithUser(uid, 'add', name);
             }
         ],
         function(err, result) {
@@ -100,177 +95,84 @@ router.post('/addMember', (req, res) => {
 
 // 删除用户
 router.post('/removeMember', (req, res) => {
-    const { uid, phone } = req.body;
-    if (!uid) {
+    const { uid, id, name } = req.body;
+    if (!uid || !id) {
         return res.json({
             error: true,
-            msg: { uid: '缺少传递值' }
+            msg: { uid, phone, id }
         });
     }
 
-    const statement = `UPDATE user SET state = 2 WHERE id = ${uid}`;
+    const statement = `UPDATE user SET status = 2 WHERE id = ${id}`;
 
     connection.query(statement, (err) => {
         if (err) {
             console.log('REMOVE MEMBER - ', err.message);
             res.json({ error: true, msg: '服务器错误' });
         } else {
+            addLogsWithUser(uid, 'del', name);
             res.json({ success: true });
         }
-    });
-
-    const statement_1 = `INSERT INFO operation_logs(content) VALUES (${phone} 删除了 ${phone})`;
-
-    connection.query(statement_1, (err) => {
-        err && console.log('INSERT LOGS - ', err.message);
     });
 });
 // 编辑用户
 router.post('/editMember', (req, res) => {
-    const { id, name, sex } = req.body;
-    if (!id) {
+    const { id, name, sex, uid } = req.body;
+    if (!id || !name || !sex || !uid) {
         return res.json({
             error: true,
             msg: { id: '缺少传递值' }
         });
     }
 
-    const statement = `UPDATE user SET name = ${name}, sex = ${sex} WHERE id = ${id}`;
-    const statement_1 = `INSERT INFO operation_logs(content) VALUES (${phone} 删除了 ${phone})`;
+    const statement = `UPDATE user SET name='${name}', sex='${sex}' WHERE id = '${id}'`;
 
-    connection.query(statement, (err) => {
+    connection.query(statement, (err, datas) => {
         if (err) {
-            console.log('REMOVE MEMBER - ', err.message);
+            console.log('EDIT MEMBER - ', err.message);
             res.json({ error: true, msg: '服务器错误' });
         } else {
+            addLogsWithUser(uid, 'edit', id);
             res.json({ success: true });
         }
     });
-
-
-    connection.query(statement_1, (err) => {
-        err && console.log('INSERT LOGS - ', err.message);
-    });
 });
 
-// // 注册用户
-// router.post('/registered', (req, res) => {
-//     const { account, password, sex, time } = req.body;
-//     const uid = md5(account, password, time);
-//     const s1 = `INSERT INTO user(name, account, password, sex, createTime, uid)
-//     VALUES('${account}', '${account}', '${password}', ${sex}, ${time}, '${uid}')`;
-//     const s2 = `SELECT * FROM user WHERE account = '${account}'`;
-//     connection.query(s2, (err, info) => {
-//         if (info) {
-//             res.json({ error: true, msg: '账号已经存在' });
-//         } else {
-//             connection.query(s1, (err) => {
-//                 err ? res.json({ error: true, msg: '服务器错误' }) : res.json({ success: true });
-//                 if (err) console.log('[INSERT ERROR] - ', err.message);
-//             });
-//         }
-//     });
-// });
-// // 获取留言数据
-// router.get('/get', (req, res) => {
-//     const { page, type, find_context } = req.query;
-//     var start = (page - 1) * 7;
-//     const d1 = type == 0 ? '' : `where message.state=${type}`;
-//     const d2 = find_context ? `${type == 0 ? 'where' : 'and'} context like "%${find_context}%"` : '';
-//     const p1 = new Promise((resolve, reject) => {
-//         const v = `select * from message left join user on (message.uid = user.uid) ${d1} ${d2} order by id desc limit ${start},7`;
-//         connection.query(v, (err, result) => (err ? reject(err) : resolve(result)));
-//     });
-//     const p2 = new Promise((resolve, reject) => {
-//         const v = `SELECT COUNT(*) AS total from message left join user on (message.uid = user.uid) ${d1} ${d2}`;
-//         connection.query(v, (err, result) => (err ? reject(err) : resolve(result)));
-//     });
+const addLogsWithUser = (id, target, other) => {
+    const statement = `SELECT  name as uname, phone FROM user WHERE id = ${id}`;
 
-//     Promise.all([ p1, p2 ])
-//         .then((vul) => {
-//             const comments = vul[0];
-//             const total = vul[1];
-//             comments.forEach((e) => (e.reply = JSON.parse(e.reply)));
-//             res.json({
-//                 comments,
-//                 pages_max: Math.ceil(JSON.parse(JSON.stringify(total))[0].total / 7)
-//             });
-//         })
-//         .catch((e) => {
-//             res.json({
-//                 error: true,
-//                 errmsg: error
-//             });
-//         });
-// });
+    if (!target || !id) return '缺少参数';
 
-// router.post('/update', (req, res) => {
-//     if (!req.body.context) res.json({ error: true, msg: '缺少留言' });
-//     const update = `UPDATE message SET context='${req.body.context}' WHERE id =${req.body.id}`;
-//     connection.query(update, (err) => {
-//         err ? res.json({ error: true, msg: '更新留言失败' }) : res.json({ success: true });
-//         if (err) console.log('update ERROR] - ', err.message);
-//     });
-// });
-// router.post('/reply', (req, res) => {
-//     if (!req.body.reply) res.json({ error: '缺少 context' });
-//     const update = `UPDATE message SET reply='${req.body.reply}' WHERE id =${req.body.id}`;
-//     connection.query(update, (err) => {
-//         err ? res.json({ error: true, msg: '回复留言失败' }) : res.json({ success: true });
-//         if (err) console.log('update ERROR] - ', err.message);
-//     });
-// });
+    async.waterfall(
+        [
+            (next) => connection.query(statement, (err, result) => next(err, result)),
+            (dataA, next) => {
+                const obj = JSON.parse(JSON.stringify(dataA))[0];
 
-// router.post('/add', (req, res) => {
-//     const { state, context, create_time, id } = req.body;
-//     if (!state || !context || !create_time) return res.json({ error: true, msg: '缺少传递值' });
-//     if (!id) return res.json({ error: true, msg: '缺少用户信息' });
+                Object.keys(obj).length < 1 && next('用户不存在');
 
-//     const addSql = `INSERT INTO message(state,context,create_time, uid, reply) VALUES(${state}, '${context}', ${create_time}, '${id}', [])`;
-//     connection.query(addSql, (err) => {
-//         err ? res.json({ error: true, msg: '服务器错误' }) : res.json({ success: true });
-//         if (err) console.log('[INSERT ERROR] - ', err.message);
-//     });
-// });
+                let { uname, phone } = obj;
+                let first = `INSERT INTO operation_logs(content, create_time) VALUES ('${uname != '' ? uname : phone}'`;
+                const statements = {
+                    add: `${first} 添加了, ${other || ''}', '${create_time}')`,
+                    edit: `${first} 编辑了, ${other || ''}', '${create_time}')`,
+                    del: `${first}  删除, ${other || ''}', '${create_time}')`
+                };
 
-// router.post('/find', (req, res) => {
-//     const { find_context } = req.body;
-//     if (!find_context) return res.json({ error: true, msg: '缺少传递值' });
-//     const findSql1 = `SELECT * FROM message WHERE context REGEXP '${find_context}' AND state=${req.body.type || 1}`;
-//     const findSql2 = `SELECT COUNT(*) AS total FROM message WHERE context REGEXP '${find_context}' AND state=${req.body.type || 1}`;
-
-//     const f1 = new Promise((resolve, reject) => {
-//         connection.query(findSql1, (error, result) => {
-//             error ? reject(error) : resolve(result);
-//         });
-//     });
-//     const f2 = new Promise((resolve, reject) => {
-//         connection.query(findSql2, (error, result) => {
-//             error ? reject(error) : resolve(result);
-//         });
-//     });
-
-//     Promise.all([ f1, f2 ])
-//         .then((result) => {
-//             const comments = result[0];
-//             const total = result[1];
-//             comments.map((e) => (e.reply = JSON.parse(e.reply)));
-//             res.json({
-//                 comments,
-//                 pages_max: Math.ceil(JSON.parse(JSON.stringify(total))[0].total / 7)
-//             });
-//         })
-//         .catch((error) => {
-//             throw new Error(error);
-//         });
-// });
-
-// router.delete('/delete', (req, res) => {
-//     const update = `UPDATE message SET state=2 WHERE id =${req.body.id}`;
-//     connection.query(update, function(err, result) {
-//         err ? res.json({ error: true, msg: '删除留言失败' }) : res.json({ success: true });
-//         if (err) console.log('update ERROR] - ', err.message);
-//     });
-// });
+                if (!statements[target]) {
+                    next(`缺少事件${target}`);
+                } else {
+                    connection.query(statements[target], next);
+                }
+            }
+        ],
+        function(err, dataA, dataB) {
+            if (err) {
+                console.log(err);
+            } else {
+            }
+        }
+    );
+};
 
 module.exports = router;

@@ -18,10 +18,26 @@ const api = {
         });
     },
     // 获取用户
-    get_member: (state, payload) => {
+    FetchMember: (state, payload) => {
         return new Promise((resolve, reject) => {
             axios
-                .post(`${config.api_path}/getMember`, payload)
+                .post(`${config.api_path}/fetchMember`, payload)
+                .then((res) => {
+                    if (res.data.error) {
+                        reject(res.data.error);
+                    } else {
+                        resolve(res.data.data);
+                    }
+                })
+                .catch(reject);
+            return {};
+        });
+    },
+    // 删除用户
+    RemoveMember: (state, payload) => {
+        return new Promise((resolve, reject) => {
+            axios
+                .post(`${config.api_path}/removeMember`, payload)
                 .then((res) => {
                     if (res.data.error) {
                         reject(res.data.error);
@@ -51,28 +67,21 @@ const api = {
             return {};
         });
     },
-    //添加用户
+    //编辑用户
     EditMember: (state, payload) => {
-        const cond = {
-            sex: payload.sex,
-            name: payload.name,
-            id: payload.id
-        };
-
-        console.log(state);
-        // return new Promise((resolve, reject) => {
-        //     axios
-        //         .post(`${config.api_path}/editMember`, cond)
-        //         .then((res) => {
-        //             if (res.data.error) {
-        //                 reject(res.data.error);
-        //             } else {
-        //                 resolve(res.data.data);
-        //             }
-        //         })
-        //         .catch(reject);
-        //     return {};
-        // });
+        return new Promise((resolve, reject) => {
+            axios
+                .post(`${config.api_path}/editMember`, payload)
+                .then((res) => {
+                    if (res.data.error) {
+                        reject(res.data.error);
+                    } else {
+                        resolve(res.data.data);
+                    }
+                })
+                .catch(reject);
+            return {};
+        });
     }
 };
 export default api;

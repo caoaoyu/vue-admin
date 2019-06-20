@@ -2,7 +2,7 @@
 	<div class="home">
 		<el-row class="search_box space-mb20" :gutter="20">
 			<el-col :span="6">
-				<el-input placeholder="请输入内容" v-model="name">
+				<el-input placeholder="请输入内容" v-model="s_key">
 					<i slot="suffix" class="el-input__icon el-icon-search" @click="search_name"></i>
 				</el-input>
 			</el-col>
@@ -39,6 +39,8 @@
 			v-bind:sex="sex"
 			v-bind:uid="uid"
 			@handle_hide="handle_hide"
+			@handel_name="handel_name"
+			@handle_checked="handle_checked"
 		></EditMember>
 	</div>
 </template>
@@ -49,17 +51,17 @@ export default {
 	name: "home",
 	data() {
 		return {
+			s_key: "",
 			name: "",
 			id: 1,
-			show: false,
 			sex: 1,
-			uid: false
+			uid: false,
+			show: false
 		};
 	},
 	created() {
 		this.$store.dispatch("get_member", {
-			phone: this.$store.state.app.user.phone,
-			name,
+			id: this.$store.state.app.user.id,
 			page_size: 0
 		});
 		this.$set(this.$data, "uid", this.$store.state.app.user.id);
@@ -73,6 +75,12 @@ export default {
 		handle_hide() {
 			this.$set(this.$data, "show", false);
 		},
+		handle_checked(vul) {
+			this.$set(this.$data, "sex", vul);
+		},
+		handel_name(vul) {
+			this.$set(this.$data, "name", vul);
+		},
 		handle_current_change(val) {
 			console.log(val);
 		},
@@ -83,8 +91,11 @@ export default {
 			this.$set(this.$data, "sex", parm.sex);
 		},
 		handle_delete(i, parm) {
-			console.log(i, parm.id, this.$data);
-			// this.$store.dispatch("remove_member", parm.id);
+			this.$store.dispatch("remove_member", {
+				id: parm.id,
+				name: parm.name,
+				uid: this.$data.uid
+			});
 		},
 		// 根据姓名筛选
 		search_name() {

@@ -88,7 +88,7 @@ export default {
 				if (!valid) return false;
 				this.$store.dispatch("add_member", {
 					...this.$data.form,
-					create_time: Math.round(new Date().getTime() / 1000)
+					uid: this.$store.$store.app.user.id
 				});
 			});
 		}

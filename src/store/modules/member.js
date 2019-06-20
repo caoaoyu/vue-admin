@@ -1,5 +1,6 @@
 import api from '../api';
 import router from '../../router';
+import store from '../../store/index';
 
 const APP = {
     state: {
@@ -9,7 +10,7 @@ const APP = {
         get_member({ commit, state }, payload) {
             commit('show_loading', null, { root: true });
             api
-                .get_member(state, payload)
+                .FetchMember(state, payload)
                 .then((data) => {
                     commit('set_member', data);
                     commit('hide_loading', null, { root: true });
@@ -35,8 +36,18 @@ const APP = {
             api
                 .EditMember(state, payload)
                 .then((data) => {
-                    dispatch('get_member');
-                    commit('hide_loading', null, { root: true });
+                    store.dispatch('get_member', { id: payload.uid });
+                })
+                .catch((error) => {
+                    commit('hide_loading', error);
+                });
+        },
+        remove_member({ commit, state }, payload) {
+            commit('show_loading', null, { root: true });
+            api
+                .RemoveMember(state, payload)
+                .then((data) => {
+                    store.dispatch('get_member', { id: payload.uid });
                 })
                 .catch((error) => {
                     commit('hide_loading', error);
