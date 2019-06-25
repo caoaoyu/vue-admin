@@ -58,7 +58,7 @@ const api = {
                 .post(`${config.api_path}/addMember`, payload)
                 .then((res) => {
                     if (res.data.error) {
-                        reject(res.data.error);
+                        reject(res.data.msg);
                     } else {
                         resolve(res.data.data);
                     }
@@ -72,6 +72,21 @@ const api = {
         return new Promise((resolve, reject) => {
             axios
                 .post(`${config.api_path}/editMember`, payload)
+                .then((res) => {
+                    if (res.data.error) {
+                        reject(res.data.error);
+                    } else {
+                        resolve(res.data.data);
+                    }
+                })
+                .catch(reject);
+            return {};
+        });
+    },
+    SearchMember: (state, payload) => {
+        return new Promise((resolve, reject) => {
+            axios
+                .post(`${config.api_path}/searchMember`, payload)
                 .then((res) => {
                     if (res.data.error) {
                         reject(res.data.error);

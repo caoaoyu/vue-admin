@@ -17,6 +17,12 @@
 			<el-table-column label="姓名">
 				<template slot-scope="scope">{{ scope.row.name }}</template>
 			</el-table-column>
+			<el-table-column label="账号">
+				<template slot-scope="scope">{{ scope.row.phone }}</template>
+			</el-table-column>
+			<el-table-column label="性别">
+				<template slot-scope="scope">{{ scope.row.sex }}</template>
+			</el-table-column>
 			<el-table-column label="操作">
 				<template slot-scope="scope">
 					<el-button size="mini" @click="handle_edit(scope.$index, scope.row)">编辑</el-button>
@@ -51,7 +57,7 @@ export default {
 	name: "home",
 	data() {
 		return {
-			s_key: "",
+			s_key: "1",
 			name: "",
 			id: 1,
 			sex: 1,
@@ -99,9 +105,20 @@ export default {
 		},
 		// 根据姓名筛选
 		search_name() {
-			if (this.data.name.length < 0) {
-			} else {
-			}
+			if (this.$data.s_key.length < 0) return;
+			this.$store
+				.dispatch("search_member", {
+					key: this.$data.s_key,
+					uid: this.$data.uid
+				})
+				.catch(err => {
+					this.$alert("", err, {
+						confirmButtonText: "确定",
+						type: "error",
+						showClose: false,
+						center: true
+					});
+				});
 		},
 		// 新增用户
 		add_member() {

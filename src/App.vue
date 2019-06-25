@@ -1,5 +1,5 @@
 <template>
-	<div id="app">
+	<div id="app" v-loading="loading">
 		<el-container v-if="show">
 			<el-aside>
 				<Menu v-if="show"></Menu>
@@ -16,7 +16,6 @@
 		</el-container>
 		<router-view v-if="!show"></router-view>
 	</div>
-	
 </template>
 
 <script>
@@ -28,15 +27,25 @@ export default {
 	name: "app",
 	data: function() {
 		return {
-			show: false
+			show: false,
+			loading: false
 		};
 	},
 	watch: {
 		$route: function() {
 			this.show = this.$route.name != "login";
+		},
+		getLoading: function(vul) {
+			this.loading = vul;
+		}
+	},
+	computed: {
+		getLoading: function() {
+			return this.$store.state.app.loading;
 		}
 	},
 	created: function() {
+		console.log(this.$store.state.app);
 		this.show = this.$route.name != "login";
 	},
 	components: {
@@ -104,9 +113,8 @@ body,
 	padding-top: 20px;
 }
 .space-pb20 {
-	padding-bottop: 20px;
+	padding-bottom: 20px;
 }
-
 .space-pl20 {
 	padding-left: 20px;
 }

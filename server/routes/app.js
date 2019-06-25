@@ -60,14 +60,14 @@ router.post('/fetchMember', (req, res) => {
 });
 // 添加用户
 router.post('/addMember', (req, res) => {
-    const { name, sex, id, pwd, phone, uid } = req.body;
+    const { name, sex, pwd, phone, uid } = req.body;
 
-    if (!name || !id || !pwd || !phone) {
+    if (!name || !pwd || !phone) {
         res.json({ error: true, msg: '缺少传递值' });
         return;
     }
-    const statement = `SELECT * FROM user WHERE phone = ${phone}`;
-    const statement_1 = `INSERT IGNORE INTO user(name, phone, pwd, sex, create_time) VALUES('${name}', '${phone}', '${pwd}', '${sex}', '${create_time}')`;
+    const statement = `SELECT * FROM user WHERE phone = ${phone} AND status = 1`;
+    const statement_1 = `INSERT INTO user(name, phone, pwd, sex, create_time) VALUES('${name}', '${phone}', '${pwd}', '${sex}', '${create_time}')`;
 
     async.waterfall(
         [
@@ -79,7 +79,6 @@ router.post('/addMember', (req, res) => {
                     return;
                 }
                 connection.query(statement_1, (err, result) => next(err, result));
-                addLogsWithUser(uid, 'add', name);
             }
         ],
         function(err, result) {
@@ -87,6 +86,7 @@ router.post('/addMember', (req, res) => {
                 console.log('[ADD MEMBER] - ', err);
                 res.json({ error: true, msg: err });
             } else {
+                addLogsWithUser(uid, 'add', name);
                 res.json({ success: true });
             }
         }
@@ -103,7 +103,7 @@ router.post('/removeMember', (req, res) => {
         });
     }
 
-    const statement = `UPDATE user SET status = 2 WHERE id = ${id}`;
+    const statement = `DELETE FROM user WHERE id = ${id}`;
 
     connection.query(statement, (err) => {
         if (err) {
@@ -112,6 +112,22 @@ router.post('/removeMember', (req, res) => {
         } else {
             addLogsWithUser(uid, 'del', name);
             res.json({ success: true });
+        }
+    });
+});
+// 搜索用户
+router.post('/searchMember', (req, res) => {
+    const { key, uid } = req.body;
+
+    const statement = `SELECT * FROM user WHERE id != '${uid}' AND status = '1' AND phone LIKE '%${key}%'`;
+
+    connection.query(statement, (err, results) => {
+        if (err) {
+            console.log('REMOVE MEMBER - ', err.message);
+            res.json({ error: true, msg: '服务器错误' });
+        } else {
+            console.log(results);
+            res.json({ success: true, data: results });
         }
     });
 });
@@ -152,11 +168,13 @@ const addLogsWithUser = (id, target, other) => {
                 Object.keys(obj).length < 1 && next('用户不存在');
 
                 let { uname, phone } = obj;
-                let first = `INSERT INTO operation_logs(content, create_time) VALUES ('${uname != '' ? uname : phone}'`;
+                console.log(obj);
+
+                let first = `INSERT INTO operation_logs(content, create_time) VALUES ('${uname != '' ? uname : phone}`;
                 const statements = {
-                    add: `${first} 添加了, ${other || ''}', '${create_time}')`,
-                    edit: `${first} 编辑了, ${other || ''}', '${create_time}')`,
-                    del: `${first}  删除, ${other || ''}', '${create_time}')`
+                    add: `${first} 添加了 ${other}', '${create_time}')`,
+                    edit: `${first} 编辑了 ${other}', '${create_time}')`,
+                    del: `${first}  删除了 ${other}', '${create_time}')`
                 };
 
                 if (!statements[target]) {

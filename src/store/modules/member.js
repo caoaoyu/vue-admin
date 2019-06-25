@@ -9,27 +9,35 @@ const APP = {
     actions: {
         get_member({ commit, state }, payload) {
             commit('show_loading', null, { root: true });
-            api
-                .FetchMember(state, payload)
-                .then((data) => {
-                    commit('set_member', data);
-                    commit('hide_loading', null, { root: true });
-                })
-                .catch((error) => {
-                    commit('hide_loading', error);
-                });
+            return new Promise((resolve, reject) => {
+                api
+                    .FetchMember(state, payload)
+                    .then((data) => {
+                        commit('set_member', data);
+                        commit('hide_loading', null, { root: true });
+                        resolve();
+                    })
+                    .catch((error) => {
+                        reject();
+                        commit('hide_loading', error);
+                    });
+            });
         },
         add_member({ commit, state }, payload) {
             commit('show_loading', null, { root: true });
-            api
-                .AddMember(state, payload)
-                .then((data) => {
-                    commit('add_member_success', data);
-                    commit('hide_loading', null, { root: true });
-                })
-                .catch((error) => {
-                    commit('hide_loading', error);
-                });
+            return new Promise((resolve, reject) => {
+                api
+                    .AddMember(state, payload)
+                    .then(() => {
+                        commit('hide_loading', null, { root: true });
+                        resolve();
+                    })
+                    .catch((error) => {
+                        reject(error);
+                        console.log(error);
+                        commit('hide_loading', error);
+                    });
+            });
         },
         edit_member({ commit, state }, payload) {
             commit('show_loading', null, { root: true });
@@ -41,6 +49,22 @@ const APP = {
                 .catch((error) => {
                     commit('hide_loading', error);
                 });
+        },
+        search_member({ commit, state }, payload) {
+            commit('show_loading', null, { root: true });
+            return new Promise((resolve, reject) => {
+                api
+                    .SearchMember(state, payload)
+                    .then((data) => {
+                        commit('set_member', data);
+                        commit('hide_loading');
+                        resolve();
+                    })
+                    .catch((error) => {
+                        reject(error);
+                        commit('hide_loading', error);
+                    });
+            });
         },
         remove_member({ commit, state }, payload) {
             commit('show_loading', null, { root: true });
@@ -57,9 +81,6 @@ const APP = {
     mutations: {
         set_member(state, data) {
             state.data = data;
-        },
-        add_member_success(state, data) {
-            router.push('/home');
         }
     }
 };

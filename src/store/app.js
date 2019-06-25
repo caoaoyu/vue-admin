@@ -4,7 +4,8 @@ import router from '../router';
 
 const APP = {
     state: {
-        user: {}
+        user: {},
+        loading: false
     },
     actions: {
         show_loading({ commit, state }) {

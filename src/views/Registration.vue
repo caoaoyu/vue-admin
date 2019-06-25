@@ -86,10 +86,23 @@ export default {
 		onSubmit() {
 			this.$refs["form"].validate(valid => {
 				if (!valid) return false;
-				this.$store.dispatch("add_member", {
-					...this.$data.form,
-					uid: this.$store.$store.app.user.id
-				});
+				this.$store
+					.dispatch("add_member", {
+						...this.$data.form,
+						uid: this.$store.state.app.user.id
+					})
+					.then(result => {
+						this.$router.push("/home");
+					})
+					.catch(err => {
+						console.log(err);
+						this.$alert("", err, {
+							confirmButtonText: "确定",
+							type: "error",
+							showClose: false,
+							center: true
+						});
+					});
 			});
 		}
 	}
