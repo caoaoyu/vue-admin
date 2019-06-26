@@ -4,7 +4,8 @@ import store from '../../store/index';
 
 const APP = {
     state: {
-        data: []
+        data: [],
+        total: 0
     },
     actions: {
         get_member({ commit, state }, payload) {
@@ -79,8 +80,10 @@ const APP = {
         }
     },
     mutations: {
-        set_member(state, data) {
-            state.data = data;
+        set_member(state, datas) {
+            console.log(datas);
+            state.data = datas.members;
+            state.total = datas.total;
         }
     }
 };

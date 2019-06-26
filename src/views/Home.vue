@@ -10,7 +10,13 @@
 				<el-button type="primary" @click="add_member">新增用户</el-button>
 			</el-col>
 		</el-row>
-		<el-table :data="members" style="width: 100%" height="450" border center>
+		<el-table
+			:data="all_members.slice((size - 1) * 10, size * 10 + 10)"
+			style="width: 100%"
+			height="450"
+			border
+			center
+		>
 			<el-table-column label="ID">
 				<template slot-scope="scope">{{ scope.row.id }}</template>
 			</el-table-column>
@@ -21,7 +27,7 @@
 				<template slot-scope="scope">{{ scope.row.phone }}</template>
 			</el-table-column>
 			<el-table-column label="性别">
-				<template slot-scope="scope">{{ scope.row.sex }}</template>
+				<template slot-scope="scope">{{ scope.row.sex == 1? '男' : '女' }}</template>
 			</el-table-column>
 			<el-table-column label="操作">
 				<template slot-scope="scope">
@@ -32,10 +38,10 @@
 		</el-table>
 		<el-pagination
 			class="space-mt20"
-			v-if="members.length > 0"
+			v-if="total > 0"
 			background
 			layout="prev, pager, next, jumper"
-			:total="members.length"
+			:total="total"
 			@current-change="handle_current_change"
 		></el-pagination>
 		<EditMember
@@ -62,18 +68,23 @@ export default {
 			id: 1,
 			sex: 1,
 			uid: false,
-			show: false
+			show: false,
+			size: 1,
+			members: []
 		};
 	},
 	created() {
 		this.$store.dispatch("get_member", {
-			id: this.$store.state.app.user.id,
-			page_size: 0
+			id: this.$store.state.app.user.id
 		});
 		this.$set(this.$data, "uid", this.$store.state.app.user.id);
 	},
 	computed: {
-		members() {
+		total() {
+			return this.$store.state.member.total;
+		},
+
+		all_members() {
 			return this.$store.state.member.data;
 		}
 	},
@@ -88,7 +99,7 @@ export default {
 			this.$set(this.$data, "name", vul);
 		},
 		handle_current_change(val) {
-			console.log(val);
+			this.$set(this.$data, "size", val);
 		},
 		handle_edit(i, parm) {
 			this.$set(this.$data, "show", true);
@@ -97,28 +108,29 @@ export default {
 			this.$set(this.$data, "sex", parm.sex);
 		},
 		handle_delete(i, parm) {
-			this.$store.dispatch("remove_member", {
+			const payload = {
 				id: parm.id,
 				name: parm.name,
 				uid: this.$data.uid
-			});
+			};
+			this.$store.dispatch("remove_member", payload);
 		},
 		// 根据姓名筛选
 		search_name() {
 			if (this.$data.s_key.length < 0) return;
-			this.$store
-				.dispatch("search_member", {
-					key: this.$data.s_key,
-					uid: this.$data.uid
-				})
-				.catch(err => {
-					this.$alert("", err, {
-						confirmButtonText: "确定",
-						type: "error",
-						showClose: false,
-						center: true
-					});
+
+			const payload = {
+				key: this.$data.s_key,
+				uid: this.$data.uid
+			};
+			this.$store.dispatch("search_member", payload).catch(err => {
+				this.$alert("", err, {
+					confirmButtonText: "确定",
+					type: "error",
+					showClose: false,
+					center: true
 				});
+			});
 		},
 		// 新增用户
 		add_member() {

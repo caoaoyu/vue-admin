@@ -48,15 +48,32 @@ router.post('/fetchMember', (req, res) => {
     }
 
     const statement = `SELECT id,name,phone,sex FROM user WHERE id != ${id} AND status = 1`;
+    const statement_1 = `SELECT COUNT(*) as total FROM user WHERE id != ${id} AND status = 1`;
 
-    connection.query(statement, (err, result) => {
-        if (err) {
-            console.log('[ADD MEMBER] - ', err.message);
-            res.json({ error: true, msg: '服务器错误' });
-        } else {
-            res.json({ success: true, data: result });
+    async.parallel(
+        [
+            (done) => {
+                connection.query(statement, (err, result) => done(err, result));
+            },
+            (done) => {
+                connection.query(statement_1, (err, result) => done(err, result));
+            }
+        ],
+        (err, results) => {
+            if (err) {
+                console.log('[ADD MEMBER] - ', err.message);
+                res.json({ error: true, msg: '服务器错误' });
+            } else {
+                const { total } = results[1][0];
+                res.json({
+                    data: {
+                        members: results[0],
+                        total
+                    }
+                });
+            }
         }
-    });
+    );
 });
 // 添加用户
 router.post('/addMember', (req, res) => {
@@ -121,13 +138,20 @@ router.post('/searchMember', (req, res) => {
 
     const statement = `SELECT * FROM user WHERE id != '${uid}' AND status = '1' AND phone LIKE '%${key}%'`;
 
-    connection.query(statement, (err, results) => {
+    const statement_1 = `SELECT COUNT(*) as total FORM user WHERE id != '${uid}' AND status = '1' AND phone LIKE '%${key}%'`;
+
+    async.parallel([ (done) => connection.query(statement, (err, result) => done(err, result)), (done) => connection.query(statement_1, (err, result) => done(err, result)) ], (err, results) => {
         if (err) {
-            console.log('REMOVE MEMBER - ', err.message);
+            console.log('SEARCH MEMBER - ', err.message);
             res.json({ error: true, msg: '服务器错误' });
         } else {
-            console.log(results);
-            res.json({ success: true, data: results });
+            const { total } = results[1][0];
+            res.json({
+                data: {
+                    members: results[0],
+                    total
+                }
+            });
         }
     });
 });
